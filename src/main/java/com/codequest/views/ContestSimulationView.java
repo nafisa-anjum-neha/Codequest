@@ -35,12 +35,21 @@ public class ContestSimulationView {
     private final Spinner<Integer> problemsSpinner = new Spinner<>(1, 10, 5, 1);
     private final Spinner<Integer> solvedSpinner = new Spinner<>(0, 10, 0, 1);
     private final Button startBtn = new Button("▶ Start Contest");
-    private final Button endBtn = new Button("■ End Contest");
+    private final Button pauseBtn = new Button("⏸ Pause Timer");
+    private final Button finishBtn = new Button("✓ Full Contest Done");
+    private final Button endEarlyBtn = new Button("⏹ Stop & Save");
+
+    private final Label contestNameLabel = new Label("-");
+    private final Label contestDurationLabel = new Label("-");
+    private final Label contestSolvedLabel = new Label("0");
+    private final Label contestScoreLabel = new Label("0");
 
     private Timeline countdown;
     private int remainingSeconds;
     private int currentDuration, currentProblems;
     private String currentStartedAt;
+    private boolean isPaused = false;
+    private boolean isContestActive = false;
 
     public ContestSimulationView() {
         root.getStyleClass().add("view-root");
@@ -69,7 +78,9 @@ public class ContestSimulationView {
         VBox.setVgrow(historyBox, Priority.ALWAYS);
         root.setCenter(center);
 
-        endBtn.setDisable(true);
+        pauseBtn.setDisable(true);
+        finishBtn.setDisable(true);
+        endEarlyBtn.setDisable(true);
         loadHistory();
     }
 
@@ -103,19 +114,42 @@ public class ContestSimulationView {
         statusLabel.getStyleClass().add("view-subtitle");
 
         solvedSpinner.setEditable(true);
-        solvedSpinner.setPrefWidth(90);
-        HBox solvedRow = new HBox(10, new Label("Problems solved so far:"), solvedSpinner);
+        solvedSpinner.setPrefWidth(80);
+        solvedSpinner.valueProperty().addListener((obs, oldVal, newVal) -> {
+            int solved = newVal == null ? 0 : newVal;
+            contestSolvedLabel.setText(String.valueOf(solved));
+            contestScoreLabel.setText(String.valueOf(solved * 100));
+        });
+
+        HBox solvedRow = new HBox(10, new Label("Solved:"), solvedSpinner);
         solvedRow.setAlignment(Pos.CENTER_LEFT);
 
-        endBtn.getStyleClass().add("small-button-danger");
-        endBtn.setOnAction(e -> endContest(false));
+        GridPane summaryGrid = new GridPane();
+        summaryGrid.setHgap(12);
+        summaryGrid.setVgap(6);
+        summaryGrid.addRow(0, new Label("Contest:"), contestNameLabel);
+        summaryGrid.addRow(1, new Label("Duration:"), contestDurationLabel);
+        summaryGrid.addRow(2, new Label("Solved:"), contestSolvedLabel);
+        summaryGrid.addRow(3, new Label("Score:"), contestScoreLabel);
 
-        Label heading = new Label("Live Contest");
+        pauseBtn.getStyleClass().add("small-button");
+        pauseBtn.setOnAction(e -> togglePauseTimer());
+
+        finishBtn.getStyleClass().add("primary-button");
+        finishBtn.setOnAction(e -> endContest(true));
+
+        endEarlyBtn.getStyleClass().add("small-button-danger");
+        endEarlyBtn.setOnAction(e -> endContest(false));
+
+        HBox btnRow = new HBox(8, pauseBtn, finishBtn, endEarlyBtn);
+        btnRow.setAlignment(Pos.CENTER_LEFT);
+
+        Label heading = new Label("Live Contest & Timer");
         heading.getStyleClass().add("chart-title");
-        VBox box = new VBox(14, heading, timerLabel, statusLabel, solvedRow, endBtn);
+        VBox box = new VBox(10, heading, timerLabel, statusLabel, summaryGrid, solvedRow, btnRow);
         box.setAlignment(Pos.CENTER_LEFT);
         box.getStyleClass().add("chart-card");
-        box.setPrefWidth(340);
+        box.setPrefWidth(420);
         return box;
     }
 
@@ -134,6 +168,21 @@ public class ContestSimulationView {
         scoreCol.setCellValueFactory(new PropertyValueFactory<>("score"));
         TableColumn<ContestSession, String> statusCol = new TableColumn<>("Status");
         statusCol.setCellValueFactory(new PropertyValueFactory<>("status"));
+        statusCol.setCellFactory(col -> new TableCell<>() {
+            @Override
+            protected void updateItem(String status, boolean empty) {
+                super.updateItem(status, empty);
+                if (empty || status == null || status.isBlank()) {
+                    setText("");
+                    setGraphic(null);
+                } else {
+                    setText(status);
+                    setStyle(status.equalsIgnoreCase("Completed") 
+                        ? "-fx-text-fill: #57f287; -fx-font-weight: bold;" 
+                        : "-fx-text-fill: #b7bbd6;");
+                }
+            }
+        });
 
         historyTable.getColumns().addAll(nameCol, durCol, solvedCol, scoreCol, statusCol);
     }
@@ -143,11 +192,21 @@ public class ContestSimulationView {
         currentProblems = problemsSpinner.getValue();
         remainingSeconds = currentDuration * 60;
         currentStartedAt = DateUtil.now();
-        solvedSpinner.getValueFactory().setValue(0);
+        isPaused = false;
+        isContestActive = true;
 
-        statusLabel.setText("Contest running — " + currentProblems + " problems, " + currentDuration + " minutes");
+        solvedSpinner.getValueFactory().setValue(0);
+        contestNameLabel.setText("Mock Contest " + DateUtil.today());
+        contestDurationLabel.setText(currentDuration + " min");
+        contestSolvedLabel.setText("0");
+        contestScoreLabel.setText("0");
+
+        statusLabel.setText("Contest running — " + currentProblems + " problems, " + currentDuration + " min");
         startBtn.setDisable(true);
-        endBtn.setDisable(false);
+        pauseBtn.setDisable(false);
+        pauseBtn.setText("⏸ Stop Timer");
+        finishBtn.setDisable(false);
+        endEarlyBtn.setDisable(false);
 
         if (countdown != null) countdown.stop();
         countdown = new Timeline(new KeyFrame(Duration.seconds(1), e -> {
@@ -162,23 +221,56 @@ public class ContestSimulationView {
         updateTimerLabel();
     }
 
+    private void togglePauseTimer() {
+        if (!isContestActive) return;
+
+        int solved = solvedSpinner.getValue() == null ? 0 : solvedSpinner.getValue();
+        int score = solved * 100;
+
+        if (!isPaused) {
+            // Stop/Pause the timer
+            if (countdown != null) countdown.stop();
+            isPaused = true;
+            pauseBtn.setText("▶ Resume Timer");
+            statusLabel.setText("Paused — Contest: Mock Contest, Duration: " + currentDuration + " min, Solved: " + solved + ", Score: " + score);
+        } else {
+            // Resume the timer
+            if (countdown != null) countdown.play();
+            isPaused = false;
+            pauseBtn.setText("⏸ Stop Timer");
+            statusLabel.setText("Contest running — " + currentProblems + " problems, " + currentDuration + " min");
+        }
+    }
+
     private void updateTimerLabel() {
         int m = Math.max(0, remainingSeconds) / 60;
         int s = Math.max(0, remainingSeconds) % 60;
         timerLabel.setText(String.format("%02d:%02d", m, s));
     }
 
-    private void endContest(boolean timeUp) {
+    private void endContest(boolean fullContestDone) {
         if (countdown != null) countdown.stop();
-        int solved = solvedSpinner.getValue();
-        int score = solved * 100 + (timeUp ? 0 : Math.max(0, remainingSeconds / 6));
+        isContestActive = false;
+        isPaused = false;
+
+        int solved = solvedSpinner.getValue() == null ? 0 : solvedSpinner.getValue();
+        int score = solved * 100;
+
+        // Status is empty unless the full contest is done
+        String status = fullContestDone ? "Completed" : "";
 
         saveSession("Mock Contest " + DateUtil.today(), currentDuration, currentProblems, solved, score,
-                currentStartedAt, DateUtil.now(), timeUp ? "Time's Up" : "Ended Early");
+                currentStartedAt, DateUtil.now(), status);
 
-        statusLabel.setText(timeUp ? "Time's up! Final score: " + score : "Contest ended. Final score: " + score);
+        statusLabel.setText(fullContestDone
+                ? "Full contest completed! Score: " + score
+                : "Contest stopped. Score: " + score);
+
         startBtn.setDisable(false);
-        endBtn.setDisable(true);
+        pauseBtn.setDisable(true);
+        pauseBtn.setText("⏸ Stop Timer");
+        finishBtn.setDisable(true);
+        endEarlyBtn.setDisable(true);
         loadHistory();
     }
 

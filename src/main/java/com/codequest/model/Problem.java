@@ -44,5 +44,7 @@ public class Problem {
     public StringProperty topicProperty() { return topic; }
     public StringProperty difficultyProperty() { return difficulty; }
     public StringProperty statusProperty() { return status; }
+    public StringProperty urlProperty() { return url; }
+    public StringProperty notesProperty() { return notes; }
     public StringProperty dateSolvedProperty() { return dateSolved; }
 }

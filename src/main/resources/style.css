@@ -291,3 +291,21 @@
 .table-cell {
     -fx-text-fill: #dfe0f5;
 }
+
+/* ---------- Window Mini Cross Bar (Close Button) ---------- */
+.window-close-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #ff6b81;
+    -fx-font-size: 15px;
+    -fx-font-weight: bold;
+    -fx-cursor: hand;
+    -fx-padding: 3 10 3 10;
+    -fx-background-radius: 6;
+    -fx-border-color: rgba(255, 107, 129, 0.4);
+    -fx-border-radius: 6;
+}
+.window-close-button:hover {
+    -fx-background-color: #ff4757;
+    -fx-text-fill: #ffffff;
+    -fx-border-color: #ff4757;
+}

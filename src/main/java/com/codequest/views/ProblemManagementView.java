@@ -98,6 +98,41 @@ public class ProblemManagementView {
         TableColumn<Problem, String> platformCol = new TableColumn<>("Platform");
         platformCol.setCellValueFactory(new PropertyValueFactory<>("platform"));
 
+        TableColumn<Problem, String> urlCol = new TableColumn<>("Problem URL");
+        urlCol.setCellValueFactory(new PropertyValueFactory<>("url"));
+        urlCol.setCellFactory(col -> new TableCell<>() {
+            private final Hyperlink link = new Hyperlink();
+            {
+                link.setStyle("-fx-text-fill: #5865f2; -fx-underline: true; -fx-padding: 0;");
+                link.setOnAction(e -> {
+                    String url = getItem();
+                    if (url != null && !url.isBlank()) {
+                        try {
+                            if (java.awt.Desktop.isDesktopSupported() && java.awt.Desktop.getDesktop().isSupported(java.awt.Desktop.Action.BROWSE)) {
+                                java.awt.Desktop.getDesktop().browse(new java.net.URI(url.trim()));
+                            }
+                        } catch (Exception ex) {
+                            System.err.println("Could not open browser for URL: " + url);
+                        }
+                    }
+                });
+            }
+            @Override
+            protected void updateItem(String url, boolean empty) {
+                super.updateItem(url, empty);
+                if (empty || url == null || url.isBlank()) {
+                    setGraphic(null);
+                    setText("-");
+                } else {
+                    String display = url.replace("https://", "").replace("http://", "");
+                    link.setText(display.length() > 28 ? display.substring(0, 25) + "..." : display);
+                    link.setTooltip(new Tooltip(url));
+                    setGraphic(link);
+                    setText(null);
+                }
+            }
+        });
+
         TableColumn<Problem, String> topicCol = new TableColumn<>("Topic");
         topicCol.setCellValueFactory(new PropertyValueFactory<>("topic"));
 
@@ -128,7 +163,7 @@ public class ProblemManagementView {
             }
         });
 
-        table.getColumns().addAll(titleCol, platformCol, topicCol, difficultyCol, statusCol, dateCol, actionsCol);
+        table.getColumns().addAll(titleCol, platformCol, urlCol, topicCol, difficultyCol, statusCol, dateCol, actionsCol);
         return table;
     }
 
@@ -158,6 +193,7 @@ public class ProblemManagementView {
         ComboBox<String> statusBox = new ComboBox<>(FXCollections.observableArrayList("To Do", "Attempted", "Solved", "Revisit"));
         statusBox.setValue(existing == null ? "To Do" : existing.getStatus());
         TextField urlField = new TextField(existing == null ? "" : existing.getUrl());
+        urlField.setPromptText("e.g. https://leetcode.com/problems/two-sum");
         TextArea notesArea = new TextArea(existing == null ? "" : existing.getNotes());
         notesArea.setPrefRowCount(3);
 

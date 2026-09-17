@@ -81,6 +81,10 @@ public class Main extends Application {
         stage.setScene(scene);
         stage.setMinWidth(1024);
         stage.setMinHeight(700);
+        stage.setOnCloseRequest(e -> {
+            Platform.exit();
+            System.exit(0);
+        });
         stage.show();
     }
 
@@ -108,7 +112,10 @@ public class Main extends Application {
         exitBtn.getStyleClass().add("nav-button");
         exitBtn.setMaxWidth(Double.MAX_VALUE);
         exitBtn.setStyle("-fx-text-fill: #ff8fa3;");
-        exitBtn.setOnAction(e -> Platform.exit());
+        exitBtn.setOnAction(e -> {
+            Platform.exit();
+            System.exit(0);
+        });
 
         VBox footer = new VBox(exitBtn);
         footer.setPadding(new Insets(10, 0, 10, 0));
@@ -133,7 +140,19 @@ public class Main extends Application {
     private HBox buildTopBar() {
         Label title = new Label("Competitive Programming Learning Companion");
         title.getStyleClass().add("top-bar-title");
-        HBox topBar = new HBox(title);
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Button closeBtn = new Button("✕");
+        closeBtn.getStyleClass().add("window-close-button");
+        closeBtn.setTooltip(new Tooltip("Exit CodeQuest"));
+        closeBtn.setOnAction(e -> {
+            Platform.exit();
+            System.exit(0);
+        });
+
+        HBox topBar = new HBox(title, spacer, closeBtn);
         topBar.setAlignment(Pos.CENTER_LEFT);
         topBar.getStyleClass().add("top-bar");
         return topBar;
