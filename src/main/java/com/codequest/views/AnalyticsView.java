@@ -1,7 +1,6 @@
-package com.codequest.views;
+ package com.codequest.views;
 
 import com.codequest.db.DatabaseManager;
-import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.chart.*;

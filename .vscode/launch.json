@@ -3,6 +3,13 @@
     "configurations": [
         {
             "type": "java",
+            "name": "Main",
+            "request": "launch",
+            "mainClass": "com.codequest.Main",
+            "projectName": "CodeQuest"
+        },
+        {
+            "type": "java",
             "name": "Run CodeQuest",
             "request": "launch",
             "mainClass": "com.codequest.Launcher",

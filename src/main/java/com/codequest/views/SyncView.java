@@ -1,4 +1,4 @@
-package com.codequest.views;
+ package com.codequest.views;
 
 import com.codequest.db.DatabaseManager;
 import com.codequest.model.SyncLog;
@@ -93,7 +93,7 @@ public class SyncView {
     @SuppressWarnings("unchecked")
     private void buildLogTable() {
         logTable.setItems(logs);
-        logTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        logTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
 
         TableColumn<SyncLog, String> timeCol = new TableColumn<>("Timestamp");
         timeCol.setCellValueFactory(new PropertyValueFactory<>("timestamp"));

@@ -156,7 +156,7 @@ public class ContestSimulationView {
     @SuppressWarnings("unchecked")
     private void buildHistoryTable() {
         historyTable.setItems(history);
-        historyTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        historyTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
 
         TableColumn<ContestSession, String> nameCol = new TableColumn<>("Contest");
         nameCol.setCellValueFactory(new PropertyValueFactory<>("name"));

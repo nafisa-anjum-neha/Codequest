@@ -1,4 +1,4 @@
-package com.codequest.views;
+ package com.codequest.views;
 
 import com.codequest.db.DatabaseManager;
 import com.codequest.model.Topic;
@@ -63,7 +63,7 @@ public class ProgressTrackerView {
     private void buildTable() {
         table.setEditable(true);
         table.setItems(data);
-        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        table.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY_ALL_COLUMNS);
 
         TableColumn<Topic, String> categoryCol = new TableColumn<>("Category");
         categoryCol.setCellValueFactory(new PropertyValueFactory<>("category"));

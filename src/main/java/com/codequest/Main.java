@@ -1,4 +1,4 @@
-package com.codequest;
+ package com.codequest;
 
 import com.codequest.db.DatabaseManager;
 import com.codequest.views.*;
@@ -9,6 +9,7 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.Tooltip;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 
